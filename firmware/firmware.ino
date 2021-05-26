@@ -1,50 +1,59 @@
+
 #include <WiFi.h>
-const char* ssid = "iMAXX-FiBRA-JOSENILDO";
-const char* password = "sj@divinha";
+
+//Credecias
+const char* ssid = "Sua Rede";
+const char* password = "Sua Senha da Rede";
+
+
+
+//Inciando Servidor na porta 80
 WiFiServer server(80);
 
-/* LED */
+//Porta de envia o comando para o relé
 #define Porta GPIO_NUM_25
+//Porta que recebe dados do sensor de fluxo
 const int portaVazao = GPIO_NUM_35;
 
+//Função que irá fazer a atualizão da vazão
 static void atualizaVazao();
+
+//conta a quantidade de pulso para ser multiplicador pela a constante 5.5 e gerar o valor da vazão
 volatile int pulsos_vazao = 0;
+
+// Armazena a vazão
 float vazao = 0;
+
 // interrupção
-int ligou = 1;
 void IRAM_ATTR gpio_isr_handler_up(void* arg)
 {
   pulsos_vazao++;
   portYIELD_FROM_ISR();
 }
 
-//Página web
-
+//Função que contem toda a infraestruta da página web
 void WiFiLocalWebPageCtrl(void)
 {
-  WiFiClient client = server.available();   // listen for incoming clients
-  //client = server.available();
-  if (client) {                             // if you get a client,
-    Serial.println("New Client.");           // print a message out the serial port
-    String currentLine = "";                // make a String to hold incoming data from the client
-    while (client.connected()) {            // loop while the client's connected
-      if (client.available()) {             // if there's bytes to read from the client,
-        char c = client.read();             // read a byte, then
-        Serial.write(c);                    // print it out the serial monitor
-        if (c == '\n') {                    // if the byte is a newline character
+  WiFiClient client = server.available();   
 
-          // if the current line is blank, you got two newline characters in a row.
-          // that's the end of the client HTTP request, so send a response:
+  if (client) {                          
+    Serial.println("New Client.");           
+    String currentLine = "";                
+    while (client.connected()) {          
+      if (client.available()) {          
+        char c = client.read();             
+        Serial.write(c);                   
+        if (c == '\n') {                   
+
+        
           if (currentLine.length() == 0) {
-            // HTTP headers always start with a response code (e.g. HTTP/1.1 200 OK)
-            // and a content-type so the client knows what's coming, then a blank line:
+            
             client.println("HTTP/1.1 200 OK");
             client.println("Content-type:text/html");
             
             client.println();
 
-            // the content of the HTTP response follows the header:
-            //WiFiLocalWebPageCtrl(); 
+      
               client.print("<head>");
               client.print("<meta charset=\"UTF-8\">");
               client.println("<meta http-equiv=\"refresh\" content=\"0.8;URL='/L'\"/>");
@@ -56,17 +65,17 @@ void WiFiLocalWebPageCtrl(void)
               client.print("<h1><a href=\"/H\">Liga LED</a></h1>");
                       
 
-            // The HTTP response ends with another blank line:
+           
             client.println();
-            // break out of the while loop:
+           
             break;
-          } else {    // if you got a newline, then clear currentLine:
+          } else {    
             currentLine = "";
           }
-        } else if (c != '\r') {  // if you got anything else but a carriage return character,
-          currentLine += c;      // add it to the end of the currentLine
+        } else if (c != '\r') {  
+          currentLine += c;      
         }
-      // Check to see if the client request was "GET /H" or "GET /L":
+     
         if (currentLine.endsWith("GET /H")) {
           digitalWrite(Porta, HIGH);
           
@@ -87,9 +96,7 @@ void WiFiLocalWebPageCtrl(void)
 
 
 
-/***************************************************
-* Connecting to a WiFi network
-****************************************************/
+//Função que faz a conexão com a rede wifi
 void connectWiFi(void)
 {
   Serial.println();
@@ -110,6 +117,7 @@ void connectWiFi(void)
   server.begin();
 }
 
+//Função que contem a task a ser executada
 void tarefa_pedir_vazao(void *parameter){
   while(1){
     
@@ -124,17 +132,9 @@ void tarefa_pedir_vazao(void *parameter){
     }
      
   }
-  
-void AbrirPorta(void *parameter){
-  while(1){
-    
-    
-    
-    }
-  
-  
-  
-  }
+
+
+  //reponsável pela a interrupção no ESP32
 void iniciaVazao(gpio_num_t Port){
   gpio_set_direction(Port, GPIO_MODE_INPUT);
   gpio_set_intr_type(Port, GPIO_INTR_NEGEDGE);
@@ -148,21 +148,21 @@ void iniciaVazao(gpio_num_t Port){
 void setup() {
   Serial.begin(115200);
   pinMode(Porta,OUTPUT);
-  // definir porta do sensor de gas como entrada
+
   iniciaVazao((gpio_num_t) portaVazao);
   connectWiFi();
 
 
 
-
+//Criando Task do RTOS
 xTaskCreatePinnedToCore(
-  tarefa_pedir_vazao,
-  "tarefa_pedir_vazao",
-  10000,
-  NULL,
-  1,
-  NULL,
-  1
+  tarefa_pedir_vazao, //task
+  "tarefa_pedir_vazao", //nome da task
+  10000,// tamanho da pilha de memória resevada para essa tarefa
+  NULL, // Parametras passados a task
+  1,  //proridade na excecução dessa task
+  NULL, //Cabeçalho da tarefa
+  1 // núcleo onde task será executada
   );
 }
 
