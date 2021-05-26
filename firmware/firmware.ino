@@ -4,13 +4,14 @@ const char* password = "sj@divinha";
 WiFiServer server(80);
 
 /* LED */
-#define LED_PIN 2
+#define Porta GPIO_NUM_25
 const int portaVazao = GPIO_NUM_35;
 
 static void atualizaVazao();
 volatile int pulsos_vazao = 0;
 float vazao = 0;
 // interrupção
+int ligou = 1;
 void IRAM_ATTR gpio_isr_handler_up(void* arg)
 {
   pulsos_vazao++;
@@ -46,12 +47,14 @@ void WiFiLocalWebPageCtrl(void)
             //WiFiLocalWebPageCtrl(); 
               client.print("<head>");
               client.print("<meta charset=\"UTF-8\">");
-              client.println("<meta http-equiv=\"refresh\" content=\"2\"/>");
+              client.println("<meta http-equiv=\"refresh\" content=\"0.8;URL='/L'\"/>");
               client.print("</head>");
-              client.print("Vazão nesse instante: ");
+              client.print("<h1>Vazão nesse instante: </h1> ");
               client.print(vazao);
-              client.print("  (L/s)<br>");
-              client.print("<br>");        
+              client.print("  <h1>(L/s)<h1>");
+              client.print("<br>");             
+              client.print("<h1><a href=\"/H\">Liga LED</a></h1>");
+                      
 
             // The HTTP response ends with another blank line:
             client.println();
@@ -63,7 +66,14 @@ void WiFiLocalWebPageCtrl(void)
         } else if (c != '\r') {  // if you got anything else but a carriage return character,
           currentLine += c;      // add it to the end of the currentLine
         }
-
+      // Check to see if the client request was "GET /H" or "GET /L":
+        if (currentLine.endsWith("GET /H")) {
+          digitalWrite(Porta, HIGH);
+          
+        }
+        else if(currentLine.endsWith("GET /L")){
+          digitalWrite(Porta, LOW);
+        }
        
       }
     }
@@ -114,6 +124,17 @@ void tarefa_pedir_vazao(void *parameter){
     }
      
   }
+  
+void AbrirPorta(void *parameter){
+  while(1){
+    
+    
+    
+    }
+  
+  
+  
+  }
 void iniciaVazao(gpio_num_t Port){
   gpio_set_direction(Port, GPIO_MODE_INPUT);
   gpio_set_intr_type(Port, GPIO_INTR_NEGEDGE);
@@ -126,6 +147,7 @@ void iniciaVazao(gpio_num_t Port){
 
 void setup() {
   Serial.begin(115200);
+  pinMode(Porta,OUTPUT);
   // definir porta do sensor de gas como entrada
   iniciaVazao((gpio_num_t) portaVazao);
   connectWiFi();
