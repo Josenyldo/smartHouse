@@ -34,62 +34,32 @@ void IRAM_ATTR gpio_isr_handler_up(void* arg)
 //Função que contem toda a infraestruta da página web
 void WiFiLocalWebPageCtrl(void)
 {
-  WiFiClient client = server.available();   
-
-  if (client) {                          
-    Serial.println("New Client.");           
+  WiFiClient client = server.available();                              
     String currentLine = "";                
     while (client.connected()) {          
-      if (client.available()) {          
-        char c = client.read();             
-        Serial.write(c);                   
-        if (c == '\n') {                   
-
+      if (client.available()) {             
         
           if (currentLine.length() == 0) {
             
             client.println("HTTP/1.1 200 OK");
             client.println("Content-type:text/html");
-            
             client.println();
-
-      
-              client.print("<head>");
-              client.print("<meta charset=\"UTF-8\">");
-              client.println("<meta http-equiv=\"refresh\" content=\"0.8;URL='/L'\"/>");
-              client.print("</head>");
-              client.print("<h1>Vazão nesse instante: </h1> ");
-              client.print(vazao);
-              client.print("  <h1>(L/s)<h1>");
-              client.print("<br>");             
-              client.print("<h1><a href=\"/H\">Liga LED</a></h1>");
-                      
-
-           
-            client.println();
-           
-            break;
-          } else {    
-            currentLine = "";
-          }
-        } else if (c != '\r') {  
-          currentLine += c;      
-        }
-     
-        if (currentLine.endsWith("GET /H")) {
-          digitalWrite(Porta, HIGH);
-          
-        }
-        else if(currentLine.endsWith("GET /L")){
-          digitalWrite(Porta, LOW);
-        }
-       
+            client.print("<head>");
+            client.print("<meta charset=\"UTF-8\">");
+            client.println("<meta http-equiv=\"refresh\" content=\"0.8;URL='/L'\"/>");
+            client.print("</head>");
+            client.print("<h1>Vazão nesse instante: </h1> ");
+            client.print(vazao);
+            client.print("  <h1>(L/s)<h1>");
+            client.print("<br>");             
+             client.print("<h1><a href=\"/H\">Liga LED</a></h1>");
+          } 
       }
     }
     // close the connection:
     client.stop();
     Serial.println("Client Disconnected.");
-  }
+
 }
 
 

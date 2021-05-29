@@ -10,6 +10,9 @@ O obejtivo desse projeto é medir a vazão em tempo real a partir de uma rede lo
 Para implementação do código utilizamos o FreeRTOS  para priorizar algumas tarefas para que elas sejam resolvidas atendendo as restrições de tempo real. Além de podemos levar nossa aplicação para outro dispotivo que também implemente FreeRTOS.
 
 # Testes
-Na pasta vídeo contém um material documentando  o protótipo do projeto. 
+O vídeo que cotempla a primeira parte do projeto é: [Acionamento de Solenoide](https://www.youtube.com/watch?v=opxVK3Q5iVM) 
 
 
+
+
+O vídeo que cotempla a segunda parte do projeto é: [Medido a vazão da água da torneira](https://www.youtube.com/watch?v=opxVK3Q5iVM) 
