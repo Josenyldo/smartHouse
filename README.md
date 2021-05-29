@@ -15,4 +15,4 @@ O vídeo que contempla a primeira parte do projeto é: [Acionamento de Solenoide
 
 
 
-O vídeo que contempla a segunda parte do projeto é: [Medido a vazão da água da torneira](https://www.youtube.com/watch?v=opxVK3Q5iVM) 
+O vídeo que contempla a segunda parte do projeto é: [Medido a vazão da água da torneira](https://www.youtube.com/watch?v=-18AyDJfE4k) 
