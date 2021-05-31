@@ -13,7 +13,7 @@ class _IotScreenState extends State<IotScreen>
   @override
   final dbRef = FirebaseDatabase()
       .reference()
-      .child('Data'); //FirebaseDatabase.instance.reference();
+      .child('Vazao'); //FirebaseDatabase.instance.reference();
   bool value = false;
   Color color = Colors.grey;
 
@@ -23,9 +23,6 @@ class _IotScreenState extends State<IotScreen>
       value = !value;
     });
   }
-
-  static final GlobalKey<ScaffoldState> _scaffoldKey =
-      new GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
@@ -39,24 +36,6 @@ class _IotScreenState extends State<IotScreen>
         ),
         debugShowCheckedModeBanner: false,
         home: Scaffold(
-          key: _scaffoldKey,
-          drawer: Drawer(
-              child: new ListView(
-            children: <Widget>[
-              new DrawerHeader(
-                child: new Text("DRAWER HEADER.."),
-                decoration: new BoxDecoration(color: Colors.orange),
-              ),
-              new ListTile(
-                title: new Text("Room 1"),
-                onTap: () {},
-              ),
-              new ListTile(
-                title: new Text("Room 2"),
-                onTap: () {},
-              ),
-            ],
-          )),
           body: SafeArea(
             child: StreamBuilder(
               stream: dbRef.onValue,
@@ -69,31 +48,13 @@ class _IotScreenState extends State<IotScreen>
                       Padding(
                         padding: const EdgeInsets.all(18.0),
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
-                            GestureDetector(
-                              onTap: () {
-                                //_scaffoldKey.currentState.openDrawer();
-                                print(snapshot);
-                              },
-
-                              child: Icon(
-                                Icons.clear_all,
-                                color: !value ? Colors.white : Colors.yellow,
-                              ),
-                              // ),
-                            ),
-                            Text("MY ROOM",
+                            Text("Smart House",
                                 style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold)),
-
-                            Icon(
-                              Icons.settings,
-                              color: !value ? Colors.white : Colors.yellow,
-                            ),
-                            // ),
                           ],
                         ),
                       ),
@@ -105,7 +66,7 @@ class _IotScreenState extends State<IotScreen>
                             children: [
                               Padding(
                                 padding: const EdgeInsets.all(8.0),
-                                child: Text("Temperature",
+                                child: Text("Vazão de água",
                                     style: TextStyle(
                                         color: !value
                                             ? Colors.white
@@ -116,36 +77,13 @@ class _IotScreenState extends State<IotScreen>
                               Padding(
                                 padding: const EdgeInsets.all(8.0),
                                 child: Text(
-                                    snapshot.data!.snapshot.value["Vazao"]
+                                    snapshot.data!.snapshot.value["Data"]
                                             .toString() +
                                         " L/s",
                                     style: TextStyle(
                                         color: Colors.white, fontSize: 20)),
                               ),
                             ],
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 20),
-                      Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text("Humidity",
-                                style: TextStyle(
-                                    color:
-                                        !value ? Colors.white : Colors.yellow,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold)),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                                //snapshot.data.snapshot.value["Humidity:"]
-                                //  .toString() +
-                                "%",
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 20)),
                           ),
                         ],
                       ),
@@ -167,7 +105,7 @@ class _IotScreenState extends State<IotScreen>
                       ),
                     ],
                   );
-                } else {}
+                }
                 return Container();
               },
             ),
@@ -176,13 +114,10 @@ class _IotScreenState extends State<IotScreen>
   }
 
   Future<void> writeData() async {
-    //dbRef.child("LightState").set({"switch": !value});
-    dbRef.child("Data").set({"Vazao": 2});
+    dbRef.child("LightState").set({"switch": !value});
   }
 
   Future<void> readData() async {
-    dbRef.child("Data").once().then((DataSnapshot snapshot) {
-      print(snapshot.value);
-    });
+    dbRef.child("Vazao").once().then((DataSnapshot snapshot) {});
   }
 }
