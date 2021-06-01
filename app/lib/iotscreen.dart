@@ -114,7 +114,7 @@ class _IotScreenState extends State<IotScreen>
   }
 
   Future<void> writeData() async {
-    dbRef.child("LightState").set({"switch": !value});
+    dbRef.child("Porta").set({"switch": !value});
   }
 
   Future<void> readData() async {

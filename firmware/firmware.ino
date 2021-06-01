@@ -1,17 +1,20 @@
 
 #include <WiFi.h>
+#include "FirebaseESP32.h"
 
-//Credecias
-const char* ssid = "Sua Rede";
-const char* password = "Sua Senha da Rede";
-
-
-
-//Inciando Servidor na porta 80
-WiFiServer server(80);
+#define WIFI_SSID "iMAXX-FiBRA-JOSENILDO"                   
+#define WIFI_PASSWORD "sj@divinha"         
+#define FIREBASE_HOST "https://smart-house-9d2e8-default-rtdb.firebaseio.com/"    
+#define FIREBASE_AUTH "bB0CH5loxBbr7w6C4LZGHOAtduYWQGXdy1qn5jWG"
+// Firebase Data object
+FirebaseData firebaseData;
+FirebaseJson json;
+String nodo = "/Vazao";
+bool estado;
 
 //Porta de envia o comando para o relé
-#define Porta GPIO_NUM_25
+#define porta GPIO_NUM_25
+
 //Porta que recebe dados do sensor de fluxo
 const int portaVazao = GPIO_NUM_35;
 
@@ -24,6 +27,25 @@ volatile int pulsos_vazao = 0;
 // Armazena a vazão
 float vazao = 0;
 
+void conexaoWifi(){
+  
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  Serial.print("Conectado al Wi-Fi");
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    Serial.print(".");
+    delay(300);
+  }
+  
+}
+
+void conexaoFirebase(){
+  
+  Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
+  Firebase.reconnectWiFi(true);
+  
+}
+  
 // interrupção
 void IRAM_ATTR gpio_isr_handler_up(void* arg)
 {
@@ -31,77 +53,42 @@ void IRAM_ATTR gpio_isr_handler_up(void* arg)
   portYIELD_FROM_ISR();
 }
 
-//Função que contem toda a infraestruta da página web
-void WiFiLocalWebPageCtrl(void)
-{
-  WiFiClient client = server.available();                              
-    String currentLine = "";                
-    while (client.connected()) {          
-      if (client.available()) {             
-        
-          if (currentLine.length() == 0) {
-            
-            client.println("HTTP/1.1 200 OK");
-            client.println("Content-type:text/html");
-            client.println();
-            client.print("<head>");
-            client.print("<meta charset=\"UTF-8\">");
-            client.println("<meta http-equiv=\"refresh\" content=\"0.8;URL='/L'\"/>");
-            client.print("</head>");
-            client.print("<h1>Vazão nesse instante: </h1> ");
-            client.print(vazao);
-            client.print("  <h1>(L/s)<h1>");
-            client.print("<br>");             
-             client.print("<h1><a href=\"/H\">Liga LED</a></h1>");
-          } 
-      }
-    }
-    // close the connection:
-    client.stop();
-    Serial.println("Client Disconnected.");
-
-}
 
 
 
 
 
-//Função que faz a conexão com a rede wifi
-void connectWiFi(void)
-{
-  Serial.println();
-  Serial.println();
-  Serial.print("Connecting to ");
-  Serial.println(ssid);
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) 
-  {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("");
-  Serial.println("WiFi connected.");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
-  
-  server.begin();
-}
 
 //Função que contem a task a ser executada
 void tarefa_pedir_vazao(void *parameter){
   while(1){
     
-      vazao = pulsos_vazao/5.5;
+  vazao = pulsos_vazao/5.5;
   pulsos_vazao = 0;
-   WiFiLocalWebPageCtrl();
+ 
   // Realizar o print da leitura no serial
   Serial.println("Leitura do Sensor de Vazao (L/s):");
   Serial.println(vazao);
   // realizar um delay e inicializar leitura daqui a 1 segundos
   delay(200);
+  json.set("/Data", vazao);
+  Firebase.updateNode(firebaseData,"/Vazao",json);
+  delay(100);
+
+  
+   Firebase.getBool(firebaseData, nodo + "/Porta/switch");
+   estado = firebaseData.boolData();
+       
+   if(!estado){
+        digitalWrite(porta,HIGH);
+    }else
+       digitalWrite(porta,LOW);
+
     }
+    
+
      
-  }
+}
 
 
   //reponsável pela a interrupção no ESP32
@@ -117,12 +104,10 @@ void iniciaVazao(gpio_num_t Port){
 
 void setup() {
   Serial.begin(115200);
-  pinMode(Porta,OUTPUT);
-
+  pinMode(porta,OUTPUT);
   iniciaVazao((gpio_num_t) portaVazao);
-  connectWiFi();
-
-
+  conexaoWifi();
+  conexaoFirebase();
 
 //Criando Task do RTOS
 xTaskCreatePinnedToCore(
